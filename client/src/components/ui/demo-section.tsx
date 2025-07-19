@@ -1,199 +1,156 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Play, RotateCcw, Info, BarChart3, Terminal } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Card } from "./card";
+import { Badge } from "./badge";
+import { Shield, Zap, Eye, Ban } from "lucide-react";
 
-const initialMessages = [
-  {
-    id: 1,
-    user: "BadUser",
-    userColor: "text-red-400",
-    avatar: "U",
-    avatarBg: "bg-gradient-to-r from-red-500 to-pink-500",
-    time: "Today at 2:34 PM",
-    content: "Check out this totally legit free nitro link! discord-nitro-free.fake-site.com",
-    type: "user"
-  }
+const demoLogs = [
+  { id: 1, type: "threat", message: "Malicious link detected from @spammer123", action: "Auto-banned", time: "2 seconds ago" },
+  { id: 2, type: "spam", message: "Spam message blocked from @advertiser", action: "Message deleted", time: "5 seconds ago" },
+  { id: 3, type: "raid", message: "Raid attempt detected - 15 users joined", action: "Lockdown activated", time: "12 seconds ago" },
+  { id: 4, type: "success", message: "Server secured - all threats neutralized", action: "Protection active", time: "15 seconds ago" },
 ];
 
-const botResponse = {
-  id: 2,
-  user: "SecureBot",
-  userColor: "text-discord",
-  avatar: "🛡️",
-  avatarBg: "bg-gradient-to-r from-discord to-discord-dark",
-  time: "Today at 2:34 PM",
-  content: "⚠️ Malicious Link Detected\nUser BadUser has been automatically banned for sharing a malicious link. Message deleted.",
-  type: "bot",
-  severity: "danger"
-};
-
-const userReaction = {
-  id: 3,
-  user: "AdminUser",
-  userColor: "text-green-400",
-  avatar: "A",
-  avatarBg: "bg-gradient-to-r from-green-500 to-blue-500",
-  time: "Today at 2:35 PM",
-  content: "Thanks SecureBot! Great protection as always 👍",
-  type: "user"
-};
-
 export default function DemoSection() {
-  const [messages, setMessages] = useState(initialMessages);
-  const [isRunning, setIsRunning] = useState(false);
+  const [currentLog, setCurrentLog] = useState(0);
+  const [displayedLogs, setDisplayedLogs] = useState([demoLogs[0]]);
 
-  const { data: stats } = useQuery({
-    queryKey: ["/api/stats"],
-  });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentLog(prev => {
+        const next = (prev + 1) % demoLogs.length;
+        setDisplayedLogs(prev => {
+          const newLogs = [...prev, demoLogs[next]];
+          return newLogs.slice(-3); // Keep only last 3 logs
+        });
+        return next;
+      });
+    }, 3000);
 
-  const runDemo = () => {
-    if (isRunning) return;
-    
-    setIsRunning(true);
-    
-    // Add bot response after 1 second
-    setTimeout(() => {
-      setMessages(prev => [...prev, botResponse]);
-    }, 1000);
-    
-    // Add user reaction after 2 seconds
-    setTimeout(() => {
-      setMessages(prev => [...prev, userReaction]);
-      setIsRunning(false);
-    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getLogIcon = (type: string) => {
+    switch (type) {
+      case "threat": return <Ban className="w-4 h-4 text-red-400" />;
+      case "spam": return <Shield className="w-4 h-4 text-yellow-400" />;
+      case "raid": return <Eye className="w-4 h-4 text-orange-400" />;
+      case "success": return <Zap className="w-4 h-4 text-green-400" />;
+      default: return <Shield className="w-4 h-4 text-blue-400" />;
+    }
   };
 
-  const resetDemo = () => {
-    setMessages(initialMessages);
-    setIsRunning(false);
+  const getLogColor = (type: string) => {
+    switch (type) {
+      case "threat": return "text-red-400";
+      case "spam": return "text-yellow-400";
+      case "raid": return "text-orange-400";
+      case "success": return "text-green-400";
+      default: return "text-blue-400";
+    }
   };
 
   return (
-    <section id="demo" className="py-20 bg-bg-primary">
+    <section id="demo" className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 gradient-text">
-            See SecureBot in Action
+          <h2 className="text-4xl font-bold text-text-primary mb-4">
+            See SecureBot in <span className="text-transparent bg-clip-text bg-gradient-to-r from-discord to-discord-dark">Action</span>
           </h2>
-          <p className="text-xl text-text-secondary max-w-2xl mx-auto">
-            Experience the power of advanced Discord moderation with our interactive demo
+          <p className="text-xl text-text-secondary max-w-3xl mx-auto">
+            Watch how SecureBot automatically detects and responds to threats in real-time
           </p>
         </div>
 
-        <div className="bg-bg-secondary border border-bg-tertiary rounded-2xl p-8 mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-3 h-3 bg-accent-danger rounded-full"></div>
-              <div className="w-3 h-3 bg-accent-warning rounded-full"></div>
-              <div className="w-3 h-3 bg-accent-success rounded-full"></div>
-            </div>
-            <div className="text-text-secondary text-sm"># general</div>
-          </div>
-
-          <div className="space-y-4 mb-6 h-64 overflow-y-auto bg-bg-primary rounded-lg p-4">
-            {messages.map((message) => (
-              <div key={message.id} className="flex items-start space-x-3 animate-fade-in">
-                <div className={`w-8 h-8 ${message.avatarBg} rounded-full flex items-center justify-center text-sm font-semibold`}>
-                  {message.avatar}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h3 className="text-2xl font-bold text-text-primary mb-6">Real-time Protection</h3>
+            <div className="space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Shield className="text-white" size={24} />
                 </div>
                 <div>
-                  <div className="flex items-center space-x-2 mb-1">
-                    <span className={`font-semibold ${message.userColor}`}>{message.user}</span>
-                    {message.type === "bot" && (
-                      <span className="bg-discord text-white text-xs px-2 py-0.5 rounded">BOT</span>
-                    )}
-                    <span className="text-text-secondary text-xs">{message.time}</span>
-                  </div>
-                  {message.type === "bot" ? (
-                    <div className="bg-accent-danger/20 border-l-4 border-accent-danger p-3 rounded">
-                      <div className="text-accent-danger font-semibold">⚠️ Malicious Link Detected</div>
-                      <div className="text-text-secondary text-sm mt-1">User BadUser has been automatically banned for sharing a malicious link. Message deleted.</div>
-                    </div>
-                  ) : (
-                    <div className="text-text-primary">{message.content}</div>
-                  )}
+                  <h4 className="text-lg font-semibold text-text-primary mb-2">Advanced Threat Detection</h4>
+                  <p className="text-text-secondary">AI-powered scanning identifies malicious links, spam, and suspicious behavior patterns instantly.</p>
                 </div>
               </div>
-            ))}
-          </div>
 
-          <div className="flex items-center space-x-4">
-            <Button 
-              onClick={runDemo}
-              disabled={isRunning}
-              className="bg-discord hover:bg-discord-dark text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              <Play className="mr-2" size={16} />
-              {isRunning ? "Running Demo..." : "Run Demo"}
-            </Button>
-            <Button 
-              onClick={resetDemo}
-              variant="outline"
-              className="border border-bg-tertiary hover:border-discord text-text-secondary hover:text-discord px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              <RotateCcw className="mr-2" size={16} />
-              Reset
-            </Button>
-            <div className="text-text-secondary text-sm flex items-center">
-              <Info className="mr-1" size={16} />
-              Demo shows automatic threat detection and response
-            </div>
-          </div>
-        </div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Zap className="text-white" size={24} />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-text-primary mb-2">Instant Response</h4>
+                  <p className="text-text-secondary">Automated actions happen in milliseconds - threats are neutralized before they can cause damage.</p>
+                </div>
+              </div>
 
-        {/* Command Examples and Live Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="bg-bg-secondary border border-bg-tertiary rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-text-primary flex items-center">
-              <Terminal className="mr-2 text-discord" size={20} />
-              Slash Commands
-            </h3>
-            <div className="space-y-3 font-mono text-sm">
-              <div className="bg-bg-primary p-3 rounded border-l-4 border-discord">
-                <div className="text-discord">/ban @user reason</div>
-                <div className="text-text-secondary text-xs mt-1">Ban a user with optional reason</div>
-              </div>
-              <div className="bg-bg-primary p-3 rounded border-l-4 border-accent-warning">
-                <div className="text-accent-warning">/mute @user duration</div>
-                <div className="text-text-secondary text-xs mt-1">Temporarily mute a user</div>
-              </div>
-              <div className="bg-bg-primary p-3 rounded border-l-4 border-accent-success">
-                <div className="text-accent-success">/security status</div>
-                <div className="text-text-secondary text-xs mt-1">Check server security status</div>
+              <div className="flex items-start space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Eye className="text-white" size={24} />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-text-primary mb-2">Complete Monitoring</h4>
+                  <p className="text-text-secondary">24/7 surveillance of your server with detailed logs and analytics for full transparency.</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-bg-secondary border border-bg-tertiary rounded-lg p-6">
-            <h3 className="text-xl font-semibold mb-4 text-text-primary flex items-center">
-              <BarChart3 className="mr-2 text-accent-success" size={20} />
-              Live Statistics
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-text-secondary">Threats Blocked Today</span>
-                <span className="text-accent-danger font-semibold">{stats?.threatsBlockedToday || 247}</span>
-              </div>
-              <div className="w-full bg-bg-primary rounded-full h-2">
-                <div className="bg-gradient-to-r from-accent-danger to-accent-warning h-2 rounded-full" style={{width: "78%"}}></div>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-text-secondary">Active Protections</span>
-                <span className="text-accent-success font-semibold">12/12</span>
-              </div>
-              <div className="w-full bg-bg-primary rounded-full h-2">
-                <div className="bg-gradient-to-r from-accent-success to-discord h-2 rounded-full" style={{width: "100%"}}></div>
-              </div>
+          <div>
+            <Card className="bg-bg-secondary border-bg-tertiary">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-lg font-semibold text-text-primary">Security Console</h4>
+                  <Badge variant="outline" className="text-green-400 border-green-400/30 bg-green-400/10">
+                    Live
+                  </Badge>
+                </div>
 
-              <div className="flex justify-between items-center">
-                <span className="text-text-secondary">Server Health</span>
-                <span className="text-accent-success font-semibold">
-                  {stats?.isOnline ? "Excellent" : "Offline"}
-                </span>
+                <div className="bg-gray-900 rounded-lg p-4 font-mono text-sm">
+                  <div className="flex items-center mb-3">
+                    <div className="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
+                    <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
+                    <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+                    <span className="text-text-secondary ml-2">SecureBot Console</span>
+                  </div>
+
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {displayedLogs.map((log) => (
+                      <div key={log.id} className="flex items-start space-x-2 animate-fade-in">
+                        {getLogIcon(log.type)}
+                        <div className="flex-1 min-w-0">
+                          <div className={`${getLogColor(log.type)} text-sm`}>
+                            {log.message}
+                          </div>
+                          <div className="text-green-400 text-xs mt-1">
+                            ✓ {log.action}
+                          </div>
+                          <div className="text-text-secondary text-xs">
+                            {log.time}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-green-400">247</div>
+                    <div className="text-xs text-text-secondary">Threats Blocked</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-blue-400">15</div>
+                    <div className="text-xs text-text-secondary">Active Servers</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-purple-400">99.9%</div>
+                    <div className="text-xs text-text-secondary">Uptime</div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
