@@ -23,7 +23,7 @@ class MilitaryGradeEncryption {
 // Ultra-secure payment data storage
 class SecurePaymentVault {
   // Bank details are encrypted multiple times and split across different variables
-  private static readonly ENCRYPTED_RECIPIENT = MilitaryGradeEncryption.encrypt("Doreen Koffke");
+  private static readonly ENCRYPTED_RECIPIENT = MilitaryGradeEncryption.encrypt("499dc4ec4dc99de39e7bc90576c77f865bdbcb7925f63e1e7e5d16507a2e8004");
   private static readonly ENCRYPTED_IBAN_PART1 = MilitaryGradeEncryption.encrypt("FR76167980000100");
   private static readonly ENCRYPTED_IBAN_PART2 = MilitaryGradeEncryption.encrypt("01451751688");
   private static readonly ENCRYPTED_BIC = MilitaryGradeEncryption.encrypt("TRZOFR21XXX");
