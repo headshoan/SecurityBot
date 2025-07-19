@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, Shield } from "lucide-react";
+import SecurePaymentModal from "./secure-payment-modal";
 
 const plans = [
   {
@@ -52,6 +54,20 @@ const plans = [
 ];
 
 export default function PricingSection() {
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<{name: string, price: string}>({name: "", price: ""});
+
+  const handlePlanSelect = (planName: string, price: string) => {
+    if (planName.toLowerCase() === "basic protection") {
+      // Free plan - no payment needed
+      alert("Free plan activated! You can now add the bot to your server.");
+      return;
+    }
+    
+    setSelectedPlan({ name: planName.toLowerCase().replace(" ", ""), price });
+    setIsPaymentModalOpen(true);
+  };
+
   return (
     <section id="pricing" className="py-20 bg-bg-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -62,6 +78,16 @@ export default function PricingSection() {
           <p className="text-xl text-text-secondary max-w-2xl mx-auto">
             From basic protection to enterprise security - we have the perfect plan for your Discord server
           </p>
+          
+          <div className="mt-6 bg-accent-success/10 border border-accent-success/30 rounded-lg p-4 max-w-xl mx-auto">
+            <div className="flex items-center justify-center text-accent-success mb-2">
+              <Shield className="mr-2" size={16} />
+              <span className="font-semibold">Military-Grade Payment Security</span>
+            </div>
+            <p className="text-text-secondary text-sm">
+              All payments use ultra-secure encryption. Bank details never exposed in browsers.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -109,6 +135,7 @@ export default function PricingSection() {
               </ul>
 
               <Button 
+                onClick={() => handlePlanSelect(plan.name, plan.price + (plan.period || ""))}
                 variant={plan.buttonVariant}
                 className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 ${
                   plan.popular 
@@ -118,12 +145,29 @@ export default function PricingSection() {
                     : ""
                 }`}
               >
-                {plan.buttonText}
+                {plan.price === "Free" ? (
+                  <>
+                    <Shield className="mr-2" size={16} />
+                    {plan.buttonText}
+                  </>
+                ) : (
+                  <>
+                    <Shield className="mr-2" size={16} />
+                    Secure Payment
+                  </>
+                )}
               </Button>
             </div>
           ))}
         </div>
       </div>
+
+      <SecurePaymentModal 
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        plan={selectedPlan.name}
+        price={selectedPlan.price}
+      />
     </section>
   );
 }

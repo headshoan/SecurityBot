@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { discordBot } from "./services/discord-bot";
+import { SecurePaymentProcessor } from "./services/secure-payment";
 import { z } from "zod";
 
 const configSchema = z.object({
@@ -143,6 +144,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const inviteUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&permissions=${permissions}&scope=${scopes}`;
     
     res.json({ inviteUrl });
+  });
+
+  // Ultra-secure payment processing endpoint
+  app.post("/api/payment/process", async (req, res) => {
+    try {
+      const { plan, email } = req.body;
+      
+      if (!plan || !email) {
+        return res.status(400).json({ message: "Plan and email are required" });
+      }
+
+      const paymentResult = await SecurePaymentProcessor.processPayment(plan, email);
+      
+      res.json({
+        success: true,
+        payment: paymentResult
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Payment processing failed" });
+    }
+  });
+
+  // Admin endpoint for secure bank details (heavily protected)
+  app.post("/api/admin/payment-details", async (req, res) => {
+    try {
+      const { adminKey } = req.body;
+      
+      const bankDetails = await SecurePaymentProcessor.getSecureBankDetails(adminKey);
+      
+      res.json(bankDetails);
+    } catch (error) {
+      res.status(403).json({ message: "Access denied" });
+    }
   });
 
   const httpServer = createServer(app);
