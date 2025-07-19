@@ -7,7 +7,8 @@ export default function HeroSection() {
     queryKey: ["/api/stats"],
   });
 
-  const { data: inviteData } = useQuery({
+  type InviteData = { inviteUrl?: string };
+  const { data: inviteData } = useQuery<InviteData>({
     queryKey: ["/api/discord/invite"],
   });
 
