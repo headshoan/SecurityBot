@@ -17,14 +17,16 @@ class DiscordSecurityBot {
     });
 
     this.setupEventHandlers();
-    this.setupCommands();
   }
 
   private setupEventHandlers() {
-    this.client.once(Events.ClientReady, () => {
+    this.client.once(Events.ClientReady, async () => {
       console.log(`✅ SecureBot is online as ${this.client.user?.tag}`);
       this.isReady = true;
       this.client.user?.setActivity("🛡️ Protecting servers", { type: 3 });
+      
+      // Setup commands after client is ready
+      await this.setupCommands();
     });
 
     this.client.on(Events.GuildCreate, async (guild) => {
@@ -117,7 +119,10 @@ class DiscordSecurityBot {
 
   private async setupCommands() {
     // Only setup commands if we have the required tokens
-    if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_BOT_TOKEN) {
+    const clientId = process.env.DISCORD_CLIENT_ID;
+    const botToken = process.env.DISCORD_BOT_TOKEN;
+    
+    if (!clientId || !botToken) {
       console.log("⚠️ Discord credentials not found, skipping command setup");
       return;
     }
@@ -204,9 +209,12 @@ class DiscordSecurityBot {
     ];
 
     try {
+      // Set the token for the REST client
+      this.client.rest.setToken(botToken);
+      
       // Register commands with Discord
       await this.client.rest.put(
-        `/applications/${process.env.DISCORD_CLIENT_ID}/commands`,
+        `/applications/${clientId}/commands`,
         { body: commands }
       );
       console.log("✅ Discord commands registered successfully");
